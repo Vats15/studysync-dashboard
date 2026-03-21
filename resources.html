@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Resources</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="particles-js"></div>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+<h3>StudySync</h3>
+
+<a href="dashboard.html">Dashboard</a>
+<a href="notes.html">My Notes</a>
+<a class = "active" href="resources.html">Resources</a>
+<a href="deadlines.html">Deadlines</a>
+<a href="announcements.html">Announcements</a>
+<a href="timetable.html">Timetable</a>
+
+
+</div>
+
+<!-- MAIN CONTENT -->
+
+<div class="main">
+
+<h1>Resource Library 📂</h1>
+
+<!-- TOP CONTROLS -->
+
+<div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
+
+<button class="item-card">⬆ Upload Resource</button>
+
+<input placeholder="Search resources..."
+style="padding:10px;border-radius:8px;border:none;width:220px;">
+
+</div>
+
+<!-- RESOURCE LIST -->
+
+<div class="section">
+
+<div class="item-card">
+
+<h5>📄 Cloud Computing Lecture 1</h5>
+
+<div style="margin-top:10px;">
+<button class="item-card">⬇ Download</button>
+</div>
+
+</div>
+
+<div class="item-card">
+
+<h5>📄 Virtualization Slides</h5>
+
+<div style="margin-top:10px;">
+<button class="item-card">⬇ Download</button>
+</div>
+
+</div>
+
+<div class="item-card">
+
+<h5>📄 Signals and Systems Notes</h5>
+
+<div style="margin-top:10px;">
+<button class="item-card">⬇ Download</button>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+particlesJS("particles-js",{
+particles:{
+number:{value:60},
+size:{value:3},
+move:{speed:1},
+line_linked:{
+enable:true,
+distance:150,
+color:"#ffffff",
+opacity:0.3
+}
+}
+});
+
+</script>
+
+</body>
+
+</html>
