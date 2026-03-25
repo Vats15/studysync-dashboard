@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 
@@ -167,4 +168,175 @@ font-weight:600;
 
 </body>
 
+=======
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Timetable</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.timetable-container{
+margin-top:30px;
+overflow-x:auto;
+}
+
+.timetable{
+width:100%;
+border-collapse:separate;
+border-spacing:10px;
+}
+
+.timetable th{
+padding:15px;
+text-align:center;
+font-weight:600;
+color:white;
+}
+
+.day{
+font-weight:600;
+}
+
+/* CELL BASE */
+
+.slot{
+padding:18px;
+border-radius:12px;
+text-align:center;
+font-size:14px;
+backdrop-filter:blur(8px);
+transition:0.25s;
+cursor:pointer;
+}
+
+/* HOVER EFFECT */
+
+.slot:hover{
+transform:translateY(-4px) scale(1.03);
+box-shadow:0 8px 20px rgba(0,0,0,0.35);
+}
+
+/* SUBJECT COLORS */
+
+.rfa{
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+}
+
+.ofc{
+background:linear-gradient(135deg,#3b82f6,#22d3ee);
+}
+
+.wc{
+background:linear-gradient(135deg,#14b8a6,#22d3ee);
+}
+
+.cc{
+background:linear-gradient(135deg,#f59e0b,#fb923c);
+}
+
+.lab{
+background:linear-gradient(135deg,#ec4899,#f472b6);
+}
+
+.lunch{
+background:rgba(255,255,255,0.25);
+font-weight:600;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h3>StudySync</h3>
+
+<a href="dashboard.html">Dashboard</a>
+<a href="notes.html">My Notes</a>
+<a href="resources.html">Resources</a>
+<a href="deadlines.html">Deadlines</a>
+<a href="announcements.html">Announcements</a>
+<a class="active" href="timetable.html">Timetable</a>
+
+
+</div>
+
+<div class="main">
+
+<h1>Weekly Timetable</h1>
+
+<div class="timetable-container">
+
+<table class="timetable">
+
+<tr>
+<th></th>
+<th>11-12</th>
+<th>12-1</th>
+<th>1-2</th>
+<th>2-3</th>
+<th>3-4</th>
+<th>4-5</th>
+</tr>
+
+<tr>
+<th class="day">Monday</th>
+<td></td>
+<td class="slot rfa">RFA</td>
+<td class="slot lunch">Lunch</td>
+<td class="slot ofc">OFC</td>
+<td class="slot wc">WC</td>
+<td class="slot cc">CC</td>
+</tr>
+
+<tr>
+<th class="day">Tuesday</th>
+<td class="slot ofc">OFC</td>
+<td class="slot wc">WC</td>
+<td class="slot lunch">Lunch</td>
+<td class="slot cc">CC</td>
+<td colspan="2" class="slot lab">RFA Lab</td>
+</tr>
+
+<tr>
+<th class="day">Wednesday</th>
+<td></td>
+<td></td>
+<td class="slot lunch">Lunch</td>
+<td colspan="2" class="slot lab">WC Lab</td>
+<td class="slot rfa">RFA</td>
+</tr>
+
+<tr>
+<th class="day">Thursday</th>
+<td class="slot rfa">RFA</td>
+<td class="slot wc">WC</td>
+<td class="slot lunch">Lunch</td>
+<td class="slot cc">CC</td>
+<td colspan="2" class="slot lab">CC Lab</td>
+</tr>
+
+<tr>
+<th class="day">Friday</th>
+<td colspan="2" class="slot lab">OFC Lab</td>
+<td class="slot lunch">Lunch</td>
+<td class="slot ofc">OFC</td>
+<td colspan="2" class="slot lab">Project Lab</td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</body>
+
+>>>>>>> a7e09d38e1431d2e05e587b17580681026c2b039
 </html>
