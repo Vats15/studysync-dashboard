@@ -1,20 +1,63 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>StudySync Dashboard</title>
 
 <link rel="stylesheet" href="style.css">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
 <style>
 
-/* SMALLER STAT CARDS */
+body{
+font-family:Poppins, sans-serif;
+background:linear-gradient(135deg,#6366f1,#3b82f6,#8b5cf6);
+margin:0;
+color:white;
+}
+
+.main{
+margin-left:260px;
+padding:30px;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+position:fixed;
+left:0;
+top:0;
+height:100vh;
+width:240px;
+background:rgba(0,0,0,0.2);
+backdrop-filter:blur(10px);
+padding:25px;
+}
+
+.sidebar h3{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+padding:10px;
+color:white;
+text-decoration:none;
+margin-bottom:8px;
+border-radius:8px;
+}
+
+.sidebar a:hover{
+background:rgba(255,255,255,0.15);
+}
+
+/* DASHBOARD CARDS */
 
 .dashboard-cards{
 display:grid;
@@ -26,7 +69,8 @@ margin-top:25px;
 .card-box{
 padding:18px;
 border-radius:14px;
-font-size:14px;
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(10px);
 }
 
 .card-box h2{
@@ -34,7 +78,7 @@ font-size:22px;
 margin-top:5px;
 }
 
-/* DASHBOARD LAYOUT */
+/* DASHBOARD GRID */
 
 .dashboard-layout{
 display:grid;
@@ -43,20 +87,10 @@ gap:25px;
 margin-top:25px;
 }
 
-/* ANALYTICS GRID */
-
-.analytics-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-margin-top:20px;
-}
-
 /* CALENDAR */
 
 .calendar{
 background:rgba(255,255,255,0.12);
-backdrop-filter:blur(12px);
 border-radius:16px;
 padding:18px;
 }
@@ -65,7 +99,6 @@ padding:18px;
 display:flex;
 justify-content:space-between;
 margin-bottom:12px;
-font-weight:600;
 }
 
 .calendar-days{
@@ -85,17 +118,14 @@ gap:8px;
 .date{
 background:rgba(255,255,255,0.08);
 border-radius:8px;
-padding:14px;
-font-size:13px;
+padding:12px;
 text-align:center;
-transition:0.2s;
+font-size:13px;
 }
 
 .date:hover{
 background:rgba(255,255,255,0.18);
 }
-
-/* DEADLINE COLORS */
 
 .quiz{
 background:linear-gradient(135deg,#6366f1,#8b5cf6);
@@ -105,32 +135,28 @@ background:linear-gradient(135deg,#6366f1,#8b5cf6);
 background:linear-gradient(135deg,#f59e0b,#fb923c);
 }
 
-/* QUICK WIDGETS */
+/* WIDGETS */
 
 .widget{
 background:rgba(255,255,255,0.12);
 padding:16px;
 border-radius:14px;
 margin-bottom:15px;
-backdrop-filter:blur(10px);
 }
 
-.widget h4{
-margin-bottom:8px;
-font-size:15px;
-}
+/* CHART */
 
-/* CHART CARD */
+.analytics-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-top:20px;
+}
 
 .chart-card{
 background:rgba(255,255,255,0.12);
 border-radius:14px;
 padding:16px;
-backdrop-filter:blur(10px);
-}
-
-.chart-card h4{
-margin-bottom:10px;
 }
 
 </style>
@@ -145,7 +171,12 @@ margin-bottom:10px;
 
 <h3>StudySync</h3>
 
-<a class="active" href="dashboard.html">Dashboard</a> <a href="notes.html">My Notes</a> <a href="resources.html">Resources</a> <a href="deadlines.html">Deadlines</a> <a href="announcements.html">Announcements</a> <a href="timetable.html">Timetable</a> 
+<a href="dashboard.html">Dashboard</a>
+<a href="notes.html">My Notes</a>
+<a href="resources.html">Resources</a>
+<a href="deadlines.html">Deadlines</a>
+<a href="announcements.html">Announcements</a>
+<a href="timetable.html">Timetable</a>
 
 </div>
 
@@ -153,54 +184,46 @@ margin-bottom:10px;
 
 <h1>Welcome back 👋</h1>
 
-<!-- SMALL STAT CARDS -->
+<!-- CARDS -->
 
 <div class="dashboard-cards">
 
-<div class="card-box notes">
+<div class="card-box">
 <p>Notes</p>
 <h2>12</h2>
 </div>
 
-<div class="card-box resources">
+<div class="card-box">
 <p>Resources</p>
 <h2>8</h2>
 </div>
 
-<div class="card-box announcements">
+<div class="card-box">
 <p>Announcements</p>
 <h2>2</h2>
 </div>
 
-<div class="card-box deadlines">
+<div class="card-box">
 <p>Deadlines</p>
 <h2>3</h2>
 </div>
 
 </div>
 
-<!-- CALENDAR + QUICK WIDGETS -->
+<!-- CALENDAR + WIDGETS -->
 
 <div class="dashboard-layout">
 
 <div class="calendar">
 
 <div class="calendar-title">
-
-<span>March 2026</span> <span>Upcoming Deadlines</span>
-
+<span>March 2026</span>
+<span>Upcoming Deadlines</span>
 </div>
 
 <div class="calendar-days">
-
-<div>Mon</div>
-<div>Tue</div>
-<div>Wed</div>
-<div>Thu</div>
-<div>Fri</div>
-<div>Sat</div>
-<div>Sun</div>
-
+<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div>
+<div>Fri</div><div>Sat</div><div>Sun</div>
 </div>
 
 <div class="calendar-grid">
@@ -214,10 +237,10 @@ margin-bottom:10px;
 <div class="date">7</div>
 
 <div class="date">8</div>
-<div class="date quiz">9<br>Signals Quiz</div>
+<div class="date quiz">9<br>Quiz</div>
 <div class="date">10</div>
 <div class="date">11</div>
-<div class="date assignment">12<br>Cloud Assignment</div>
+<div class="date assignment">12<br>Assignment</div>
 <div class="date">13</div>
 <div class="date">14</div>
 
@@ -249,17 +272,11 @@ margin-bottom:10px;
 
 <h4>Total Attendance</h4>
 
-<h2 style="margin:8px 0;">86%</h2>
+<h2>86%</h2>
 
-<div style="height:8px;background:rgba(255,255,255,0.2);border-radius:6px;overflow:hidden;">
-
-<div style="width:86%;background:linear-gradient(90deg,#22c55e,#4ade80);height:100%;"></div>
-
+<div style="height:8px;background:rgba(255,255,255,0.2);border-radius:6px;overflow:hidden">
+<div style="width:86%;background:#22c55e;height:100%"></div>
 </div>
-
-<p style="opacity:0.8;margin-top:6px;font-size:13px;">
-Overall semester attendance
-</p>
 
 </div>
 
@@ -267,22 +284,18 @@ Overall semester attendance
 
 </div>
 
-<!-- ANALYTICS -->
+<!-- CHARTS -->
 
 <div class="analytics-grid">
 
 <div class="chart-card">
-
 <h4>Attendance by Subject</h4>
 <canvas id="subjectBar"></canvas>
-
 </div>
 
 <div class="chart-card">
-
 <h4>Weekly Attendance Trend</h4>
 <canvas id="attendanceLine"></canvas>
-
 </div>
 
 </div>
@@ -314,105 +327,35 @@ type:"bar",
 data:{
 labels:["RFA","OFC","Wireless","Cloud"],
 datasets:[{
-label:"Attendance %",
 data:[88,92,75,85],
-backgroundColor:[
-"#8b5cf6",
-"#3b82f6",
-"#14b8a6",
-"#f59e0b"
-]
+backgroundColor:["#8b5cf6","#3b82f6","#14b8a6","#f59e0b"]
 }]
 },
 options:{
-responsive:true,
-plugins:{
-legend:{display:false},
-tooltip:{enabled:true}
-},
-scales:{
-y:{ticks:{color:"white"}},
-x:{ticks:{color:"white"}}
-}
+plugins:{legend:{display:false}}
 }
 });
 
 /* LINE CHART */
 
-/* LINE CHART */
-
-const lineCanvas = document.getElementById("attendanceLine");
-const ctx = lineCanvas.getContext("2d");
-
-const gradient = ctx.createLinearGradient(0,0,0,300);
-gradient.addColorStop(0,"rgba(56,189,248,0.45)");
-gradient.addColorStop(1,"rgba(56,189,248,0)");
-
-new Chart(lineCanvas,{
+new Chart(document.getElementById("attendanceLine"),{
 type:"line",
-
 data:{
-labels:["Week 1","Week 2","Week 3","Week 4"],
-
+labels:["Week1","Week2","Week3","Week4"],
 datasets:[{
-label:"Attendance %",
 data:[78,82,85,90],
-
 borderColor:"#38bdf8",
-backgroundColor:gradient,
-
+backgroundColor:"rgba(56,189,248,0.2)",
 fill:true,
-tension:0.45,
-
-pointRadius:5,
-pointHoverRadius:7,
-
-pointBackgroundColor:"#38bdf8",
-pointBorderColor:"#ffffff",
-pointBorderWidth:2
+tension:0.4
 }]
 },
-
 options:{
-
-responsive:true,
-
-plugins:{
-legend:{display:false},
-
-tooltip:{
-backgroundColor:"#1e293b",
-titleColor:"#fff",
-bodyColor:"#fff",
-displayColors:false
+plugins:{legend:{display:false}}
 }
-},
-
-scales:{
-
-y:{
-ticks:{
-color:"#e2e8f0",
-callback:(value)=>value+"%"
-},
-grid:{
-color:"rgba(255,255,255,0.08)"
-}
-},
-
-x:{
-ticks:{color:"#e2e8f0"},
-grid:{display:false}
-}
-
-}
-
-}
-
 });
 
 </script>
 
 </body>
-
 </html>
