@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Notes</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="particles-js"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+<h3>StudySync</h3>
+
+<a href="dashboard.html">Dashboard</a> <a class = "active" href="notes.html">My Notes</a> <a href="resources.html">Resources</a> <a href="deadlines.html">Deadlines</a> <a href="announcements.html">Announcements</a> <a href="timetable.html">Timetable</a> 
+
+</div>
+
+<!-- MAIN CONTENT -->
+
+<div class="main">
+
+<h1>My Notes 📝</h1>
+
+<!-- TOP CONTROLS -->
+
+<div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
+
+<button class="item-card">➕ Add Note</button>
+
+<input placeholder="Search notes..."
+style="padding:10px;border-radius:8px;border:none;width:220px;">
+
+</div>
+
+<!-- NOTES LIST -->
+
+<div class="section">
+
+<div class="item-card">
+
+<h5>Virtualization Basics</h5>
+
+<p>Subject: Cloud Computing</p>
+
+<div style="margin-top:10px;display:flex;gap:10px;">
+
+<button class="item-card">✏️ Edit</button>
+
+<button class="item-card">🗑 Delete</button>
+
+</div>
+
+</div>
+
+<div class="item-card">
+
+<h5>Cloud Deployment Steps</h5>
+
+<p>Subject: Cloud Computing</p>
+
+<div style="margin-top:10px;display:flex;gap:10px;">
+
+<button class="item-card">✏️ Edit</button>
+
+<button class="item-card">🗑 Delete</button>
+
+</div>
+
+</div>
+
+<div class="item-card">
+
+<h5>Signals Revision Notes</h5>
+
+<p>Subject: Signals & Systems</p>
+
+<div style="margin-top:10px;display:flex;gap:10px;">
+
+<button class="item-card">✏️ Edit</button>
+
+<button class="item-card">🗑 Delete</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+particlesJS("particles-js",{
+particles:{
+number:{value:60},
+size:{value:3},
+move:{speed:1},
+line_linked:{
+enable:true,
+distance:150,
+color:"#ffffff",
+opacity:0.3
+}
+}
+});
+
+</script>
+
+</body>
+
+</html>
