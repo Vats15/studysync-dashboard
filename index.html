@@ -1,83 +1,215 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
-
-<html lang="en">
+<html>
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudySync Login</title>
 
-<title>Student Hub Login</title>
+<link rel="stylesheet" href="css/style.css">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
 
-<link rel="stylesheet" href="style.css">
+body{
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+background:linear-gradient(135deg,#6366f1,#3b82f6,#8b5cf6);
+font-family:Poppins;
+margin:0;
+}
+
+.login-card{
+background:rgba(255,255,255,0.12);
+padding:30px;
+border-radius:14px;
+backdrop-filter:blur(10px);
+width:340px;
+display:flex;
+flex-direction:column;
+gap:12px;
+color:white;
+}
+
+.login-card input,
+.login-card select{
+padding:10px;
+border:none;
+border-radius:8px;
+}
+
+.login-card button{
+padding:10px;
+border:none;
+border-radius:8px;
+background:#6366f1;
+color:white;
+cursor:pointer;
+}
+
+.switch{
+text-align:center;
+cursor:pointer;
+opacity:0.8;
+}
+
+.error{
+color:#ffb4b4;
+font-size:13px;
+}
+
+</style>
 
 </head>
 
-<body style="background:linear-gradient(135deg,#6366f1,#3b82f6);height:100vh;display:flex;align-items:center;justify-content:center;">
+<body>
 
-<div class="card p-4" style="width:380px;border-radius:12px;">
+<div class="login-card">
 
-<h3 class="text-center mb-4">Student Hub</h3>
+<h2>StudySync Login</h2>
 
-<input type="email" class="form-control mb-3" placeholder="Email">
+<input id="email" placeholder="Email">
 
-<input type="password" class="form-control mb-3" placeholder="Password">
+<input id="password" type="password" placeholder="Password">
 
-<button class="btn btn-primary w-100" onclick="window.location.href='dashboard.html'">
-Login
-</button>
+<select id="role">
+<option value="student">Student</option>
+<option value="teacher">Teacher</option>
+</select>
 
-<p class="text-center mt-3 text-muted">
-Cloud Student Utility Platform
-</p>
+<button id="loginBtn">Login</button>
 
-</div>
+<div class="switch" id="signupBtn">Create Account</div>
 
-</body>
-
-</html>
-=======
-<!DOCTYPE html>
-
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Student Hub Login</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css">
-
-</head>
-
-<body style="background:linear-gradient(135deg,#6366f1,#3b82f6);height:100vh;display:flex;align-items:center;justify-content:center;">
-
-<div class="card p-4" style="width:380px;border-radius:12px;">
-
-<h3 class="text-center mb-4">Student Hub</h3>
-
-<input type="email" class="form-control mb-3" placeholder="Email">
-
-<input type="password" class="form-control mb-3" placeholder="Password">
-
-<button class="btn btn-primary w-100" onclick="window.location.href='dashboard.html'">
-Login
-</button>
-
-<p class="text-center mt-3 text-muted">
-Cloud Student Utility Platform
-</p>
+<div id="errorMsg" class="error"></div>
 
 </div>
 
-</body>
+<script type="module">
 
+import { auth, db } from "./js/firebase.js";
+
+import {
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+import {
+doc,
+setDoc,
+getDoc
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const emailInput=document.getElementById("email");
+const passInput=document.getElementById("password");
+const roleInput=document.getElementById("role");
+const errorBox=document.getElementById("errorMsg");
+
+/* =========================
+AUTO LOGIN REDIRECT
+========================= */
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user) return;
+
+const userDoc = await getDoc(doc(db,"users",user.uid));
+
+if(!userDoc.exists()) return;
+
+const role=userDoc.data().role;
+
+if(role==="teacher"){
+window.location="attendance.html";
+}else{
+window.location="dashboard.html";
+}
+
+});
+
+
+/* =========================
+SIGNUP
+========================= */
+
+document.getElementById("signupBtn").onclick = async ()=>{
+
+errorBox.innerText="";
+
+const email=emailInput.value.trim();
+const password=passInput.value.trim();
+const role=roleInput.value;
+
+if(!email || !password){
+errorBox.innerText="Please fill all fields";
+return;
+}
+
+try{
+
+const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+
+await setDoc(doc(db,"users",userCredential.user.uid),{
+email:email,
+role:role
+});
+
+alert("Account created successfully! Please login.");
+
+}catch(err){
+
+errorBox.innerText=err.message;
+
+}
+
+};
+
+
+/* =========================
+LOGIN
+========================= */
+
+document.getElementById("loginBtn").onclick = async ()=>{
+
+errorBox.innerText="";
+
+const email=emailInput.value.trim();
+const password=passInput.value.trim();
+
+if(!email || !password){
+errorBox.innerText="Enter email and password";
+return;
+}
+
+try{
+
+const userCredential = await signInWithEmailAndPassword(auth,email,password);
+
+const userDoc = await getDoc(doc(db,"users",userCredential.user.uid));
+
+if(!userDoc.exists()){
+errorBox.innerText="User role not found";
+return;
+}
+
+const role=userDoc.data().role;
+
+if(role==="teacher"){
+window.location="attendance.html";
+}else{
+window.location="dashboard.html";
+}
+
+}catch(err){
+
+errorBox.innerText=err.message;
+
+}
+
+};
+
+</script>
+
+</body>
 </html>
->>>>>>> a7e09d38e1431d2e05e587b17580681026c2b039

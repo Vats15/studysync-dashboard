@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Teacher Panel</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar"></div>
+
+<!-- GLOBAL APP -->
+<script type="module" src="js/app.js"></script>
+
+<div class="main">
+
+<h1>Teacher Panel 👩‍🏫</h1>
+
+<div class="panel">
+
+<h3>Start Attendance</h3>
+
+<select id="subject">
+
+<option value="RFA">RFA</option>
+<option value="RFA Lab">RFA Lab</option>
+<option value="OFC">OFC</option>
+<option value="OFC Lab">OFC Lab</option>
+<option value="WC">Wireless Communication</option>
+<option value="WC Lab">Wireless Communication Lab</option>
+<option value="CC">Cloud Computing</option>
+<option value="CC Lab">Cloud Computing Lab</option>
+
+</select>
+
+<input id="totalStudents" placeholder="Total Students">
+
+<div class="mode-select">
+
+<label>
+<input type="radio" name="mode" value="self" checked>
+Self Attendance
+</label>
+
+<label>
+<input type="radio" name="mode" value="qr">
+QR Attendance
+</label>
+
+</div>
+
+<div class="buttons">
+
+<button onclick="startSession()">Start</button>
+
+<button onclick="endSession()">End</button>
+
+</div>
+
+<div class="count">
+Present: <span id="presentCount">0</span>
+</div>
+
+<div class="progress">
+<div id="progressBar" class="progress-bar"></div>
+</div>
+
+<div id="qrBox"></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { db } from "./js/firebase.js";
+
+import {
+collection,
+addDoc,
+updateDoc,
+doc,
+onSnapshot,
+query,
+where
+}
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+let sessionId=null;
+let totalStudents=0;
+
+/* START SESSION */
+
+window.startSession = async function(){
+
+if(sessionId){
+alert("Session already running");
+return;
+}
+
+const subject=document.getElementById("subject").value;
+
+totalStudents=Number(document.getElementById("totalStudents").value);
+
+if(!totalStudents){
+alert("Enter total students");
+return;
+}
+
+const mode=document.querySelector('input[name="mode"]:checked').value;
+
+const ref=await addDoc(collection(db,"attendanceSessions"),{
+
+subject:subject,
+total:totalStudents,
+present:0,
+active:true,
+mode:mode,
+date:new Date().toISOString()
+
+});
+
+sessionId=ref.id;
+
+/* QR MODE */
+
+if(mode==="qr"){
+
+const box=document.getElementById("qrBox");
+
+box.innerHTML="";
+box.style.display="block";
+
+new QRCode(box,{
+text:sessionId,
+width:180,
+height:180
+});
+
+}else{
+
+document.getElementById("qrBox").style.display="none";
+
+}
+
+};
+
+/* END SESSION */
+
+window.endSession = async function(){
+
+if(!sessionId){
+alert("No session running");
+return;
+}
+
+await updateDoc(doc(db,"attendanceSessions",sessionId),{
+active:false
+});
+
+sessionId=null;
+
+document.getElementById("presentCount").innerText="0";
+document.getElementById("progressBar").style.width="0%";
+document.getElementById("qrBox").style.display="none";
+
+alert("Attendance session ended");
+
+};
+
+/* LIVE ATTENDANCE */
+
+function listenAttendance(){
+
+const q=query(
+collection(db,"attendanceSessions"),
+where("active","==",true)
+);
+
+onSnapshot(q,(snapshot)=>{
+
+snapshot.forEach(d=>{
+
+const data=d.data();
+
+sessionId=d.id;
+
+document.getElementById("presentCount").innerText=data.present;
+
+if(data.total>0){
+
+const percent=(data.present/data.total)*100;
+
+document.getElementById("progressBar").style.width=percent+"%";
+
+}
+
+});
+
+});
+
+}
+
+listenAttendance();
+
+</script>
+
+</body>
+</html>

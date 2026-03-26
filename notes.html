@@ -1,15 +1,55 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
 
-<title>Notes</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+<title>StudySync Notes</title>
+
+<link rel="stylesheet" href="css/style.css">
 
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<style>
+
+.notes-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:20px;
+margin-top:30px;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal-content{
+background:#1f2937;
+padding:25px;
+border-radius:12px;
+width:320px;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.modal-content input{
+padding:10px;
+border-radius:8px;
+border:none;
+}
+
+</style>
 
 </head>
 
@@ -18,82 +58,38 @@
 <div id="particles-js"></div>
 
 <!-- SIDEBAR -->
-<div class="sidebar">
+<div id="sidebar" class="sidebar"></div>
 
-<h3>StudySync</h3>
-
-<a href="dashboard.html">Dashboard</a> <a class = "active" href="notes.html">My Notes</a> <a href="resources.html">Resources</a> <a href="deadlines.html">Deadlines</a> <a href="announcements.html">Announcements</a> <a href="timetable.html">Timetable</a> 
-
-</div>
-
-<!-- MAIN CONTENT -->
+<!-- GLOBAL APP -->
+<script type="module" src="js/app.js"></script>
 
 <div class="main">
 
-<h1>My Notes 📝</h1>
+<h1>Professor Notes 📄</h1>
 
-<!-- TOP CONTROLS -->
-
-<div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
-
-<button class="item-card">➕ Add Note</button>
-
-<input placeholder="Search notes..."
-style="padding:10px;border-radius:8px;border:none;width:220px;">
+<div id="notesContainer" class="notes-grid"></div>
 
 </div>
 
-<!-- NOTES LIST -->
+<!-- ADD BUTTON -->
 
-<div class="section">
+<button id="addBtn" class="add-btn" onclick="openModal()" style="display:none">
++
+</button>
 
-<div class="item-card">
+<!-- MODAL -->
 
-<h5>Virtualization Basics</h5>
+<div id="noteModal" class="modal">
 
-<p>Subject: Cloud Computing</p>
+<div class="modal-content">
 
-<div style="margin-top:10px;display:flex;gap:10px;">
+<h3>Add Note</h3>
 
-<button class="item-card">✏️ Edit</button>
+<input id="noteTitle" placeholder="Note Title">
 
-<button class="item-card">🗑 Delete</button>
+<input id="noteLink" placeholder="Google Drive / PDF link">
 
-</div>
-
-</div>
-
-<div class="item-card">
-
-<h5>Cloud Deployment Steps</h5>
-
-<p>Subject: Cloud Computing</p>
-
-<div style="margin-top:10px;display:flex;gap:10px;">
-
-<button class="item-card">✏️ Edit</button>
-
-<button class="item-card">🗑 Delete</button>
-
-</div>
-
-</div>
-
-<div class="item-card">
-
-<h5>Signals Revision Notes</h5>
-
-<p>Subject: Signals & Systems</p>
-
-<div style="margin-top:10px;display:flex;gap:10px;">
-
-<button class="item-card">✏️ Edit</button>
-
-<button class="item-card">🗑 Delete</button>
-
-</div>
-
-</div>
+<button class="btn" onclick="addNote()">Save</button>
 
 </div>
 
@@ -117,129 +113,152 @@ opacity:0.3
 
 </script>
 
-</body>
+<script type="module">
 
-</html>
-=======
-<!DOCTYPE html>
+import { db, auth } from "./js/firebase.js";
 
-<html>
+import {
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+doc,
+getDoc
+}
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-<head>
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-<title>Notes</title>
+const container=document.getElementById("notesContainer");
+const addBtn=document.getElementById("addBtn");
 
-<link rel="stylesheet" href="style.css">
+let role="";
+let userEmail="";
 
-<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+/* AUTH */
 
-</head>
+onAuthStateChanged(auth, async(user)=>{
 
-<body>
+if(!user){
+window.location="index.html";
+return;
+}
 
-<div id="particles-js"></div>
+userEmail=user.email;
 
-<!-- SIDEBAR -->
-<div class="sidebar">
+const userDoc=await getDoc(doc(db,"users",user.uid));
 
-<h3>StudySync</h3>
+role=userDoc.data().role;
 
-<a href="dashboard.html">Dashboard</a> <a class = "active" href="notes.html">My Notes</a> <a href="resources.html">Resources</a> <a href="deadlines.html">Deadlines</a> <a href="announcements.html">Announcements</a> <a href="timetable.html">Timetable</a> 
+if(role==="teacher"){
+addBtn.style.display="block";
+}
 
-</div>
+loadNotes();
 
-<!-- MAIN CONTENT -->
+});
 
-<div class="main">
 
-<h1>My Notes 📝</h1>
+/* LOAD NOTES */
 
-<!-- TOP CONTROLS -->
+async function loadNotes(){
 
-<div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
+container.innerHTML="";
 
-<button class="item-card">➕ Add Note</button>
+const snapshot=await getDocs(collection(db,"notes"));
 
-<input placeholder="Search notes..."
-style="padding:10px;border-radius:8px;border:none;width:220px;">
+snapshot.forEach(document=>{
 
-</div>
+const data=document.data();
+const id=document.id;
 
-<!-- NOTES LIST -->
+container.innerHTML+=`
 
-<div class="section">
+<div class="card">
 
-<div class="item-card">
+<h3>${data.title}</h3>
 
-<h5>Virtualization Basics</h5>
+<p style="opacity:0.7">
+Uploaded by ${data.uploadedBy}
+</p>
 
-<p>Subject: Cloud Computing</p>
+<button class="btn" onclick="window.open('${data.pdfURL}')">
+Open
+</button>
 
-<div style="margin-top:10px;display:flex;gap:10px;">
-
-<button class="item-card">✏️ Edit</button>
-
-<button class="item-card">🗑 Delete</button>
-
-</div>
-
-</div>
-
-<div class="item-card">
-
-<h5>Cloud Deployment Steps</h5>
-
-<p>Subject: Cloud Computing</p>
-
-<div style="margin-top:10px;display:flex;gap:10px;">
-
-<button class="item-card">✏️ Edit</button>
-
-<button class="item-card">🗑 Delete</button>
-
-</div>
-
-</div>
-
-<div class="item-card">
-
-<h5>Signals Revision Notes</h5>
-
-<p>Subject: Signals & Systems</p>
-
-<div style="margin-top:10px;display:flex;gap:10px;">
-
-<button class="item-card">✏️ Edit</button>
-
-<button class="item-card">🗑 Delete</button>
+${
+role==="teacher"
+?
+`<button class="btn" onclick="deleteNote('${id}')">Delete</button>`
+:
+""
+}
 
 </div>
 
-</div>
+`;
 
-</div>
+});
 
-</div>
+}
+
+
+/* ADD NOTE */
+
+window.addNote = async function(){
+
+const title=document.getElementById("noteTitle").value;
+const link=document.getElementById("noteLink").value;
+
+if(!title || !link){
+alert("Fill all fields");
+return;
+}
+
+await addDoc(collection(db,"notes"),{
+
+title:title,
+pdfURL:link,
+uploadedBy:userEmail,
+date:new Date().toISOString()
+
+});
+
+closeModal();
+
+loadNotes();
+
+};
+
+
+/* DELETE */
+
+window.deleteNote = async function(id){
+
+if(confirm("Delete note?")){
+
+await deleteDoc(doc(db,"notes",id));
+
+loadNotes();
+
+}
+
+};
+
+</script>
 
 <script>
 
-particlesJS("particles-js",{
-particles:{
-number:{value:60},
-size:{value:3},
-move:{speed:1},
-line_linked:{
-enable:true,
-distance:150,
-color:"#ffffff",
-opacity:0.3
+function openModal(){
+document.getElementById("noteModal").style.display="flex";
 }
+
+function closeModal(){
+document.getElementById("noteModal").style.display="none";
 }
-});
 
 </script>
 
 </body>
-
 </html>
->>>>>>> a7e09d38e1431d2e05e587b17580681026c2b039
