@@ -78,6 +78,7 @@ font-size:13px;
 </select>
 
 <button id="loginBtn">Login</button>
+<div class="switch" id="forgotBtn">Forgot Password?</div>
 
 <div class="switch" id="signupBtn">Create Account</div>
 
@@ -92,7 +93,8 @@ import { auth, db } from "./js/firebase.js";
 import {
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
-onAuthStateChanged
+onAuthStateChanged,
+sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 import {
@@ -190,12 +192,26 @@ const userDoc = await getDoc(doc(db,"users",userCredential.user.uid));
 
 if(!userDoc.exists()){
 errorBox.innerText="User role not found";
+await auth.signOut();   // safety
 return;
 }
 
-const role=userDoc.data().role;
+const actualRole = userDoc.data().role;
+const selectedRole = roleInput.value;
 
-if(role==="teacher"){
+/* ROLE VALIDATION */
+if(actualRole !== selectedRole){
+
+errorBox.innerText = "Incorrect role selected";
+
+/* 🔥 CRITICAL FIX */
+await auth.signOut();
+
+return;
+}
+
+/* REDIRECT */
+if(actualRole === "teacher"){
 window.location="attendance.html";
 }else{
 window.location="dashboard.html";
@@ -204,6 +220,35 @@ window.location="dashboard.html";
 }catch(err){
 
 errorBox.innerText=err.message;
+
+}
+
+};
+
+/* =========================
+FORGOT PASSWORD
+========================= */
+
+document.getElementById("forgotBtn").onclick = async ()=>{
+
+errorBox.innerText="";
+
+const email = emailInput.value.trim();
+
+if(!email){
+errorBox.innerText = "Enter your email first";
+return;
+}
+
+try{
+
+await sendPasswordResetEmail(auth, email);
+
+errorBox.innerText = "Reset email sent! Check your inbox.";
+
+}catch(err){
+
+errorBox.innerText = err.message;
 
 }
 
