@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+
+/* LAYOUT */
+.chat-wrapper{
+display:flex;
+height:100vh;
+font-family: Arial, sans-serif;
+}
+
+/* LEFT PANEL */
+.user-list{
+width:28%;
+background:#1e1e2f;
+color:white;
+overflow-y:auto;
+padding:15px;
+}
+
+.user{
+padding:12px;
+border-radius:10px;
+margin-bottom:8px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.user:hover{
+background:#2c2c44;
+}
+
+.user.active{
+background:#6a5cff;
+}
+
+/* RIGHT PANEL */
+.chat-area{
+flex:1;
+display:flex;
+flex-direction:column;
+background:linear-gradient(135deg,#4a6cf7,#6a5cff);
+}
+
+/* HEADER */
+.chat-header{
+padding:15px 20px;
+background:rgba(0,0,0,0.2);
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
+}
+
+/* MESSAGES */
+.chat-box{
+flex:1;
+overflow-y:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+/* MESSAGE BUBBLES */
+.message{
+padding:12px 16px;
+border-radius:16px;
+max-width:65%;
+font-size:14px;
+line-height:1.4;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+.me{
+align-self:flex-end;
+background:linear-gradient(135deg,#6a5cff,#8f7bff);
+color:white;
+border-bottom-right-radius:5px;
+}
+
+.other{
+align-self:flex-start;
+background:white;
+color:#333;
+border-bottom-left-radius:5px;
+}
+
+/* TIME */
+.time{
+font-size:10px;
+opacity:0.6;
+margin-top:4px;
+text-align:right;
+}
+
+/* INPUT */
+.input-bar{
+display:flex;
+padding:15px;
+gap:10px;
+background:rgba(0,0,0,0.2);
+}
+
+.input-bar input{
+flex:1;
+padding:12px;
+border-radius:10px;
+border:none;
+outline:none;
+}
+
+.btn{
+padding:12px 15px;
+border:none;
+border-radius:10px;
+background:#6a5cff;
+color:white;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+
+<!-- USERS -->
+<div class="user-list" id="userList">
+<h3>Users</h3>
+</div>
+
+<!-- CHAT -->
+<div class="chat-area">
+
+<div class="chat-header">
+<span id="chatWith">Select a user</span>
+<button class="btn" onclick="goBack()">Exit</button>
+</div>
+
+<div id="chatBox" class="chat-box"></div>
+
+<div class="input-bar">
+<input id="messageInput" placeholder="Type message...">
+<button class="btn" onclick="sendMessage()">Send</button>
+</div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./js/firebase.js";
+
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+import {
+collection,
+addDoc,
+onSnapshot,
+query,
+orderBy,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+let currentUser = null;
+let selectedUser = null;
+
+const chatBox = document.getElementById("chatBox");
+const userList = document.getElementById("userList");
+
+/* AUTH */
+onAuthStateChanged(auth,(user)=>{
+if(!user){
+window.location="index.html";
+return;
+}
+currentUser = user;
+loadUsers();
+});
+
+/* LOAD USERS */
+async function loadUsers(){
+
+userList.innerHTML = "<h3>Users</h3>";
+
+const snapshot = await getDocs(collection(db,"users"));
+
+snapshot.forEach(docSnap=>{
+
+const data = docSnap.data();
+
+if(data.email !== currentUser.email){
+
+const div = document.createElement("div");
+div.className = "user";
+
+/* SHOW NAME + ROLE + EMAIL */
+div.innerHTML = `
+<div style="font-weight:bold;">${data.name}</div>
+<div style="font-size:12px; opacity:0.7;">
+${data.role?.toUpperCase() || "USER"} • ${data.email}
+</div>
+`;
+
+/* CLICK USER */
+div.onclick = ()=>{
+selectedUser = data;
+
+document.querySelectorAll(".user").forEach(u=>u.classList.remove("active"));
+div.classList.add("active");
+
+/* HEADER */
+document.getElementById("chatWith").innerHTML = `
+${data.name} 
+<span style="font-size:12px; opacity:0.7;">
+(${data.role})
+</span>
+`;
+
+loadMessages();
+};
+
+userList.appendChild(div);
+
+}
+
+});
+}
+
+/* CHAT ID */
+function getChatId(){
+return [currentUser.email, selectedUser.email].sort().join("_");
+}
+
+/* LOAD MESSAGES */
+function loadMessages(){
+
+const chatId = getChatId();
+
+const q = query(
+collection(db,"chats",chatId,"messages"),
+orderBy("createdAt")
+);
+
+onSnapshot(q,(snapshot)=>{
+
+chatBox.innerHTML="";
+
+snapshot.forEach(doc=>{
+
+const data = doc.data();
+const div = document.createElement("div");
+
+div.classList.add("message");
+
+if(data.sender === currentUser.email){
+div.classList.add("me");
+}else{
+div.classList.add("other");
+}
+
+/* TIME */
+let time = "";
+if(data.createdAt){
+const d = new Date(data.createdAt.seconds * 1000);
+time = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+div.innerHTML = `
+<div>${data.text}</div>
+<div class="time">${time}</div>
+`;
+
+chatBox.appendChild(div);
+
+});
+
+chatBox.scrollTop = chatBox.scrollHeight;
+
+});
+
+}
+
+/* SEND */
+window.sendMessage = async function(){
+
+if(!selectedUser){
+alert("Select a user first");
+return;
+}
+
+const input = document.getElementById("messageInput");
+const text = input.value.trim();
+
+if(!text) return;
+
+const chatId = getChatId();
+
+await addDoc(collection(db,"chats",chatId,"messages"),{
+text,
+sender: currentUser.email,
+createdAt: new Date()
+});
+
+input.value="";
+};
+
+/* EXIT */
+window.goBack = function(){
+window.history.back();
+};
+
+</script>
+
+</body>
+</html>

@@ -2,13 +2,11 @@
 <html>
 
 <head>
-
 <title>StudySync Login</title>
 
 <link rel="stylesheet" href="css/style.css">
 
 <style>
-
 body{
 display:flex;
 align-items:center;
@@ -36,6 +34,12 @@ color:white;
 padding:10px;
 border:none;
 border-radius:8px;
+background:rgba(255,255,255,0.2);
+color:white;
+}
+
+.login-card input::placeholder{
+color:rgba(255,255,255,0.7);
 }
 
 .login-card button{
@@ -45,6 +49,11 @@ border-radius:8px;
 background:#6366f1;
 color:white;
 cursor:pointer;
+transition:0.2s;
+}
+
+.login-card button:hover{
+background:#4f46e5;
 }
 
 .switch{
@@ -57,7 +66,6 @@ opacity:0.8;
 color:#ffb4b4;
 font-size:13px;
 }
-
 </style>
 
 </head>
@@ -68,8 +76,8 @@ font-size:13px;
 
 <h2>StudySync Login</h2>
 
+<input id="name" placeholder="Full Name (for signup only)">
 <input id="email" placeholder="Email">
-
 <input id="password" type="password" placeholder="Password">
 
 <select id="role">
@@ -79,7 +87,6 @@ font-size:13px;
 
 <button id="loginBtn">Login</button>
 <div class="switch" id="forgotBtn">Forgot Password?</div>
-
 <div class="switch" id="signupBtn">Create Account</div>
 
 <div id="errorMsg" class="error"></div>
@@ -94,7 +101,8 @@ import {
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 onAuthStateChanged,
-sendPasswordResetEmail
+sendPasswordResetEmail,
+signOut
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 import {
@@ -103,15 +111,16 @@ setDoc,
 getDoc
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-const emailInput=document.getElementById("email");
-const passInput=document.getElementById("password");
-const roleInput=document.getElementById("role");
-const errorBox=document.getElementById("errorMsg");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const passInput = document.getElementById("password");
+const roleInput = document.getElementById("role");
+const errorBox = document.getElementById("errorMsg");
+
 
 /* =========================
 AUTO LOGIN REDIRECT
 ========================= */
-
 onAuthStateChanged(auth, async(user)=>{
 
 if(!user) return;
@@ -120,7 +129,7 @@ const userDoc = await getDoc(doc(db,"users",user.uid));
 
 if(!userDoc.exists()) return;
 
-const role=userDoc.data().role;
+const role = userDoc.data().role;
 
 if(role==="teacher"){
 window.location="attendance.html";
@@ -134,18 +143,23 @@ window.location="dashboard.html";
 /* =========================
 SIGNUP
 ========================= */
-
 document.getElementById("signupBtn").onclick = async ()=>{
 
 errorBox.innerText="";
 
-const email=emailInput.value.trim();
-const password=passInput.value.trim();
-const role=roleInput.value;
+let name = nameInput.value.trim();
+const email = emailInput.value.trim();
+const password = passInput.value.trim();
+const role = roleInput.value;
 
 if(!email || !password){
-errorBox.innerText="Please fill all fields";
+errorBox.innerText="Please fill email & password";
 return;
+}
+
+/* fallback name */
+if(!name){
+name = email.split("@")[0];
 }
 
 try{
@@ -153,16 +167,15 @@ try{
 const userCredential = await createUserWithEmailAndPassword(auth,email,password);
 
 await setDoc(doc(db,"users",userCredential.user.uid),{
-email:email,
-role:role
+name: name,
+email: email,
+role: role
 });
 
 alert("Account created successfully! Please login.");
 
 }catch(err){
-
-errorBox.innerText=err.message;
-
+errorBox.innerText = err.message;
 }
 
 };
@@ -171,13 +184,12 @@ errorBox.innerText=err.message;
 /* =========================
 LOGIN
 ========================= */
-
 document.getElementById("loginBtn").onclick = async ()=>{
 
 errorBox.innerText="";
 
-const email=emailInput.value.trim();
-const password=passInput.value.trim();
+const email = emailInput.value.trim();
+const password = passInput.value.trim();
 
 if(!email || !password){
 errorBox.innerText="Enter email and password";
@@ -192,21 +204,17 @@ const userDoc = await getDoc(doc(db,"users",userCredential.user.uid));
 
 if(!userDoc.exists()){
 errorBox.innerText="User role not found";
-await auth.signOut();   // safety
+await signOut(auth);
 return;
 }
 
 const actualRole = userDoc.data().role;
 const selectedRole = roleInput.value;
 
-/* ROLE VALIDATION */
+/* ROLE CHECK */
 if(actualRole !== selectedRole){
-
 errorBox.innerText = "Incorrect role selected";
-
-/* 🔥 CRITICAL FIX */
-await auth.signOut();
-
+await signOut(auth);
 return;
 }
 
@@ -218,17 +226,15 @@ window.location="dashboard.html";
 }
 
 }catch(err){
-
-errorBox.innerText=err.message;
-
+errorBox.innerText = err.message;
 }
 
 };
 
+
 /* =========================
 FORGOT PASSWORD
 ========================= */
-
 document.getElementById("forgotBtn").onclick = async ()=>{
 
 errorBox.innerText="";
@@ -241,15 +247,10 @@ return;
 }
 
 try{
-
 await sendPasswordResetEmail(auth, email);
-
 errorBox.innerText = "Reset email sent! Check your inbox.";
-
 }catch(err){
-
 errorBox.innerText = err.message;
-
 }
 
 };
