@@ -14,6 +14,74 @@
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
+<style>
+
+/* CENTER CONTENT LIKE NOTES PAGE */
+.main{
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+/* CARD WIDTH + ALIGNMENT */
+.card{
+max-width:420px;
+width:100%;
+text-align:center;
+}
+
+/* BUTTON FULL WIDTH */
+.card .btn{
+width:100%;
+margin-top:10px;
+}
+
+/* QR SCANNER UI */
+#qr-reader{
+margin-top:20px;
+border-radius:14px;
+overflow:hidden;
+background:rgba(255,255,255,0.08);
+padding:10px;
+}
+
+/* STATUS TEXT */
+#statusMessage{
+margin-top:15px;
+font-size:14px;
+opacity:0.9;
+}
+
+/* OPTIONAL: nicer buttons */
+.btn{
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+border:none;
+padding:10px;
+border-radius:10px;
+color:white;
+cursor:pointer;
+}
+
+.center-page{
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+.center-page .card{
+max-width:420px;
+width:100%;
+text-align:center;
+}
+
+.center-page .btn{
+width:100%;
+margin-top:10px;
+}
+
+</style>
+
 </head>
 
 <body>
@@ -37,9 +105,8 @@
 
 <button class="btn" onclick="startScanner()">Scan QR</button>
 
-<div id="qr-reader" style="margin-top:20px"></div>
-
-<p id="statusMessage" style="margin-top:15px"></p>
+<div id="qr-reader"></div>
+<p id="statusMessage"></p>
 
 </div>
 
