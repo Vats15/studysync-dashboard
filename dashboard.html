@@ -374,7 +374,9 @@ snapshot.forEach(doc=>{
 const data=doc.data();
 
 total++;
+if(data){
 present++;
+}
 
 const date=new Date(data.time).toLocaleDateString();
 

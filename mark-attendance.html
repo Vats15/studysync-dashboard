@@ -213,7 +213,8 @@ return;
 
 await setDoc(recordRef,{
 student:userId,
-session:sessionId,
+session:sessionId || decodedText,
+subject:data.subject,   // 🔥 THIS FIXES DASHBOARD
 time:new Date().toISOString()
 });
 
