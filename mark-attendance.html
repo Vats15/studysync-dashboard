@@ -12,72 +12,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 <style>
 
-/* CENTER CONTENT LIKE NOTES PAGE */
+/* CENTER */
 .main{
 display:flex;
 flex-direction:column;
 align-items:center;
 }
 
-/* CARD WIDTH + ALIGNMENT */
+/* CARD */
 .card{
 max-width:420px;
 width:100%;
 text-align:center;
 }
 
-/* BUTTON FULL WIDTH */
-.card .btn{
+/* BUTTON */
+.btn{
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+border:none;
+padding:12px;
+border-radius:10px;
+color:white;
+cursor:pointer;
 width:100%;
-margin-top:10px;
+margin-top:15px;
+font-size:16px;
 }
 
-/* QR SCANNER UI */
-#qr-reader{
-margin-top:20px;
-border-radius:14px;
-overflow:hidden;
-background:rgba(255,255,255,0.08);
-padding:10px;
-}
-
-/* STATUS TEXT */
+/* STATUS */
 #statusMessage{
 margin-top:15px;
 font-size:14px;
 opacity:0.9;
-}
-
-/* OPTIONAL: nicer buttons */
-.btn{
-background:linear-gradient(135deg,#6366f1,#8b5cf6);
-border:none;
-padding:10px;
-border-radius:10px;
-color:white;
-cursor:pointer;
-}
-
-.center-page{
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-}
-
-.center-page .card{
-max-width:420px;
-width:100%;
-text-align:center;
-}
-
-.center-page .btn{
-width:100%;
-margin-top:10px;
 }
 
 </style>
@@ -95,17 +63,14 @@ margin-top:10px;
 
 <div class="main">
 
-<h1>Mark Attendance 📷</h1>
+<h1>Mark Attendance ✅</h1>
 
 <div class="card">
 
-<p>Choose attendance method</p>
+<p>Click below to mark your attendance</p>
 
 <button class="btn" onclick="markSelf()">Mark Present</button>
 
-<button class="btn" onclick="startScanner()">Scan QR</button>
-
-<div id="qr-reader"></div>
 <p id="statusMessage"></p>
 
 </div>
@@ -149,141 +114,57 @@ from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-let userId="";
-let scanner=null;
+let userId = "";
 
-/* =====================
-AUTH CHECK
-===================== */
-
+/* AUTH */
 onAuthStateChanged(auth,(user)=>{
-
 if(!user){
 window.location="index.html";
 return;
 }
-
-userId=user.uid;
-
+userId = user.uid;
 });
 
-
-/* =====================
-SELF ATTENDANCE
-===================== */
-
+/* SELF ATTENDANCE */
 window.markSelf = async function(){
 
-const q=query(
+const status = document.getElementById("statusMessage");
+status.innerText = "Checking session...";
+
+try{
+
+const q = query(
 collection(db,"attendanceSessions"),
 where("active","==",true),
 where("mode","==","self")
 );
 
-const snap=await getDocs(q);
+const snap = await getDocs(q);
 
 if(snap.empty){
-
-document.getElementById("statusMessage").innerText=
-"No self attendance session running";
-
-return;
-
-}
-
-snap.forEach(async session=>{
-
-const sessionId=session.id;
-const data=session.data();
-
-const recordId=userId+"_"+sessionId;
-
-const recordRef=doc(db,"attendanceRecords",recordId);
-
-const record=await getDoc(recordRef);
-
-if(record.exists()){
-
-document.getElementById("statusMessage").innerText=
-"Attendance already marked";
-
-return;
-
-}
-
-await setDoc(recordRef,{
-student:userId,
-session:sessionId,
-subject:data.subject,   // 🔥 THIS FIXES DASHBOARD
-time:new Date().toISOString()
-});
-
-await updateDoc(doc(db,"attendanceSessions",sessionId),{
-present:data.present+1
-});
-
-document.getElementById("statusMessage").innerText=
-"Attendance marked successfully";
-
-});
-
-};
-
-
-/* =====================
-QR SCANNER
-===================== */
-
-window.startScanner = function(){
-
-if(scanner){
-scanner.stop();
-}
-
-scanner = new Html5Qrcode("qr-reader");
-
-scanner.start(
-
-{ facingMode:"environment" },
-
-{ fps:10, qrbox:250 },
-
-async(decodedText)=>{
-
-try{
-
-/* ✅ EXTRACT SESSION ID FROM URL */
-let sessionId = decodedText;
-
-if(decodedText.includes("session=")){
-sessionId = decodedText.split("session=")[1];
-}
-
-const sessionRef = doc(db,"attendanceSessions",sessionId);
-const session = await getDoc(sessionRef);
-
-if(!session.exists()){
-document.getElementById("statusMessage").innerText="Invalid QR";
+status.innerText = "No active session ❌";
 return;
 }
 
+let marked = false;
+let alreadyMarkedAll = true;
+
+for(const session of snap.docs){
+
+const sessionId = session.id;
 const data = session.data();
-
-if(!data.active){
-document.getElementById("statusMessage").innerText="Session closed";
-return;
-}
 
 const recordId = userId + "_" + sessionId;
 const recordRef = doc(db,"attendanceRecords",recordId);
 
 const record = await getDoc(recordRef);
 
-if(record.exists()){
-document.getElementById("statusMessage").innerText="Already marked";
-return;
-}
+/* NOT MARKED YET */
+if(!record.exists()){
 
+alreadyMarkedAll = false;
+
+/* SAVE */
 await setDoc(recordRef,{
 student:userId,
 session:sessionId,
@@ -291,22 +172,35 @@ subject:data.subject,
 time:new Date().toISOString()
 });
 
-await updateDoc(sessionRef,{
-present:data.present+1
+/* UPDATE COUNT */
+await updateDoc(doc(db,"attendanceSessions",sessionId),{
+present:(data.present || 0) + 1
 });
 
-document.getElementById("statusMessage").innerText="Attendance marked ✅";
+status.innerText = "Attendance marked ✅";
+navigator.vibrate?.(200);
 
-scanner.stop();
+marked = true;
+break;
+}
+
+}
+
+/* ALL MARKED */
+if(!marked && alreadyMarkedAll){
+status.innerText = "Already marked ⚠️";
+return;
+}
+
+/* FALLBACK */
+if(!marked){
+status.innerText = "Error ❌";
+}
 
 }catch(err){
 console.error(err);
-document.getElementById("statusMessage").innerText="Error";
+status.innerText = err.message;
 }
-
-}
-
-);
 
 };
 

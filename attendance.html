@@ -2,17 +2,26 @@
 <html lang="en">
 
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Teacher Panel</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
 <style>
 
-/* CENTER PAGE LIKE OTHERS */
+/* CENTER PAGE */
 .center-page{
 display:flex;
 flex-direction:column;
 align-items:center;
 }
 
-/* PANEL LOOK (GLASS UI) */
+/* PANEL */
 .panel{
 background:rgba(255,255,255,0.12);
 backdrop-filter:blur(16px);
@@ -33,13 +42,6 @@ width:100%;
 padding:10px;
 border-radius:10px;
 border:none;
-}
-
-/* RADIO GROUP */
-.mode-select{
-display:flex;
-justify-content:space-between;
-font-size:14px;
 }
 
 /* BUTTONS */
@@ -65,7 +67,7 @@ font-size:18px;
 font-weight:600;
 }
 
-/* PROGRESS BAR */
+/* PROGRESS */
 .progress{
 background:rgba(255,255,255,0.2);
 height:10px;
@@ -80,37 +82,18 @@ width:0%;
 transition:0.3s;
 }
 
-/* QR BOX */
-#qrBox{
-margin-top:15px;
-display:none;
-justify-content:center;
-}
-
-#qrBox canvas{
-border-radius:12px;
-background:white;
-padding:10px;
-}
-
 </style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Teacher Panel</title>
-
-<link rel="stylesheet" href="css/style.css">
-
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
 </head>
 
 <body>
+
 <div id="particles-js"></div>
+
 <!-- SIDEBAR -->
 <div id="sidebar" class="sidebar"></div>
+<a href="chat.html" class="chat-float">💬</a>
 
-<!-- GLOBAL APP -->
 <script type="module" src="js/app.js"></script>
 
 <div class="main center-page">
@@ -122,7 +105,6 @@ padding:10px;
 <h3>Start Attendance</h3>
 
 <select id="subject">
-
 <option value="RFA">RFA</option>
 <option value="RFA Lab">RFA Lab</option>
 <option value="OFC">OFC</option>
@@ -131,31 +113,17 @@ padding:10px;
 <option value="WC Lab">Wireless Communication Lab</option>
 <option value="CC">Cloud Computing</option>
 <option value="CC Lab">Cloud Computing Lab</option>
-
 </select>
 
 <input id="totalStudents" placeholder="Total Students">
 
-<div class="mode-select">
-
-<label>
-<input type="radio" name="mode" value="self" checked>
-Self Attendance
-</label>
-
-<label>
-<input type="radio" name="mode" value="qr">
-QR Attendance
-</label>
-
-</div>
+<p style="font-size:13px; opacity:0.8;">
+Mode: Self Attendance Only
+</p>
 
 <div class="buttons">
-
 <button onclick="startSession()">Start</button>
-
 <button onclick="endSession()">End</button>
-
 </div>
 
 <div class="count">
@@ -165,8 +133,6 @@ Present: <span id="presentCount">0</span>
 <div class="progress">
 <div id="progressBar" class="progress-bar"></div>
 </div>
-
-<div id="qrBox"></div>
 
 </div>
 
@@ -206,36 +172,17 @@ alert("Enter total students");
 return;
 }
 
-const mode = document.querySelector('input[name="mode"]:checked').value;
-
+/* 🔥 ALWAYS SELF MODE */
 const ref = await addDoc(collection(db,"attendanceSessions"),{
 subject,
 total: totalStudents,
 present: 0,
 active: true,
-mode,
+mode: "self",
 date: new Date().toISOString()
 });
 
 sessionId = ref.id;
-
-/* ✅ CREATE PHONE-ACCESSIBLE URL */
-const url = `${window.location.origin}/mark-attendance.html?session=${sessionId}`;
-
-/* QR */
-if(mode==="qr"){
-const box = document.getElementById("qrBox");
-box.innerHTML="";
-box.style.display="flex";
-
-new QRCode(box,{
-text:url,
-width:200,
-height:200
-});
-}else{
-document.getElementById("qrBox").style.display="none";
-}
 
 listenAttendance();
 };
@@ -252,11 +199,10 @@ await updateDoc(doc(db,"attendanceSessions",sessionId),{
 active:false
 });
 
-sessionId=null;
+sessionId = null;
 
 document.getElementById("presentCount").innerText="0";
 document.getElementById("progressBar").style.width="0%";
-document.getElementById("qrBox").style.display="none";
 
 if(unsubscribe){
 unsubscribe();
@@ -266,7 +212,7 @@ unsubscribe=null;
 alert("Attendance session ended");
 };
 
-/* LIVE ATTENDANCE */
+/* LIVE UPDATE */
 function listenAttendance(){
 
 const q=query(
@@ -280,14 +226,14 @@ unsubscribe = onSnapshot(q,(snapshot)=>{
 
 snapshot.forEach(d=>{
 
-const data=d.data();
-sessionId=d.id;
+const data = d.data();
+sessionId = d.id;
 
-document.getElementById("presentCount").innerText=data.present;
+document.getElementById("presentCount").innerText = data.present;
 
-if(data.total>0){
-const percent=(data.present/data.total)*100;
-document.getElementById("progressBar").style.width=percent+"%";
+if(data.total > 0){
+const percent = (data.present/data.total)*100;
+document.getElementById("progressBar").style.width = percent + "%";
 }
 
 });
@@ -297,6 +243,7 @@ document.getElementById("progressBar").style.width=percent+"%";
 }
 
 </script>
+
 <script>
 particlesJS("particles-js",{
 particles:{

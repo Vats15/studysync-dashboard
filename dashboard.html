@@ -115,11 +115,11 @@ padding:15px;
 </head>
 
 <body>
-
 <div id="particles-js"></div>
-
+<a href="chat.html" class="chat-float">💬</a>
 <div id="sidebar" class="sidebar"></div>
 <script type="module" src="js/app.js"></script>
+
 
 <div class="main">
 
@@ -213,9 +213,10 @@ import {
 collection,
 getDocs,
 query,
-orderBy
-}
-from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+orderBy,
+where,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 import { onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -230,12 +231,11 @@ return;
 loadCalendar();
 loadAnnouncements();
 loadTimetable();
-loadAttendance();
+loadAttendance(user.uid); // ✅ pass user
 
 });
 
-
-/* CALENDAR */
+/* ================= CALENDAR ================= */
 
 async function loadCalendar(){
 
@@ -244,14 +244,11 @@ const snapshot=await getDocs(collection(db,"deadlines"));
 const events=[];
 
 snapshot.forEach(doc=>{
-
 const data=doc.data();
-
 events.push({
 title:data.title+" ("+data.subject+")",
 date:data.dueDate
 });
-
 });
 
 const calendar=new FullCalendar.Calendar(
@@ -264,18 +261,16 @@ events:events
 );
 
 calendar.render();
-
 }
 
-
-/* ANNOUNCEMENTS */
+/* ================= ANNOUNCEMENTS ================= */
 
 async function loadAnnouncements(){
 
 const container=document.getElementById("announcementsBox");
+container.innerHTML=""; // ✅ clear first
 
 const q=query(collection(db,"announcements"),orderBy("date","desc"));
-
 const snapshot=await getDocs(q);
 
 let count=0;
@@ -287,159 +282,166 @@ if(count>=2) return;
 const data=doc.data();
 
 container.innerHTML+=`
-
-<div class="announcement">
-
-${data.text}
-
-</div>
-
+<div class="announcement">${data.text}</div>
 `;
 
 count++;
-
 });
-
 }
 
-
-/* TIMETABLE */
+/* ================= TIMETABLE ================= */
 
 function loadTimetable(){
 
 const day=new Date().toLocaleDateString("en-IN",{weekday:"long"});
 
-const timetable={
-
+const timetable = {
 Monday:[
-{time:"09:00",subject:"RFA"},
-{time:"10:00",subject:"OFC"},
-{time:"12:00",subject:"Cloud Computing"}
+{time:"11-12",subject:"RFA"},
+{time:"1-2",subject:"OFC"},
+{time:"2-3",subject:"WC"},
+{time:"3-4",subject:"CC"}
 ],
-
 Tuesday:[
-{time:"09:00",subject:"Wireless Comm"},
-{time:"11:00",subject:"RFA Lab"}
+{time:"11-12",subject:"OFC"},
+{time:"12-1",subject:"WC"},
+{time:"2-3",subject:"CC"},
+{time:"3-4",subject:"RFA Lab"}
 ],
-
 Wednesday:[
-{time:"10:00",subject:"WC Lab"},
-{time:"14:00",subject:"Project Lab"}
+{time:"2-3",subject:"WC Lab"},
+{time:"3-4",subject:"RFA"}
+],
+Thursday:[
+{time:"11-12",subject:"RFA"},
+{time:"12-1",subject:"WC"},
+{time:"2-3",subject:"CC"},
+{time:"3-4",subject:"CC Lab"}
+],
+Friday:[
+{time:"11-1",subject:"OFC Lab"},
+{time:"2-3",subject:"OFC"},
+{time:"3-5",subject:"Project Lab"}
 ]
-
 };
 
 const container=document.getElementById("todayClasses");
+container.innerHTML="";
 
 if(timetable[day]){
-
 timetable[day].forEach(c=>{
-
 container.innerHTML+=`
-
 <div class="timetable-item">
-
 <span>${c.subject}</span>
 <span>${c.time}</span>
-
 </div>
-
 `;
-
 });
-
 }else{
-
 container.innerHTML="<p>No classes today</p>";
-
+}
 }
 
-}
+/* ================= ATTENDANCE (FIXED 🔥) ================= */
 
+function loadAttendance(userId){
 
-/* ATTENDANCE */
+const q = query(
+collection(db,"attendanceRecords"),
+where("student","==",userId)
+);
 
-async function loadAttendance(){
+onSnapshot(q,(snapshot)=>{
 
-const snapshot=await getDocs(collection(db,"attendanceRecords"));
+console.log("Docs:", snapshot.size); // 🔥 DEBUG
 
-let total=0;
-let present=0;
+let total = 0;
 
-const trend={};
-const subjects={};
+const trend = {};
+const subjects = {};
 
 snapshot.forEach(doc=>{
-
-const data=doc.data();
-
+const data = doc.data();
 total++;
-if(data){
-present++;
-}
 
-const date=new Date(data.time).toLocaleDateString();
+const date = new Date(data.time).toLocaleDateString();
+trend[date] = (trend[date] || 0) + 1;
 
-trend[date]=(trend[date]||0)+1;
-
-const subject=data.subject || "General";
-
-subjects[subject]=(subjects[subject]||0)+1;
-
+const subject = data.subject || "General";
+subjects[subject] = (subjects[subject] || 0) + 1;
 });
 
-const percent=Math.round((present/total)*100)||0;
+/* ✅ ALWAYS SHOW SOMETHING */
+const labels1 = Object.keys(trend);
+const data1 = Object.values(trend);
 
-document.getElementById("attendancePercent").innerText=percent+"%";
+const labels2 = Object.keys(subjects);
+const data2 = Object.values(subjects);
 
+/* HANDLE EMPTY CASE */
+if(labels1.length === 0){
+labels1.push("No Data");
+data1.push(0);
+}
 
-/* TREND GRAPH */
+if(labels2.length === 0){
+labels2.push("No Data");
+data2.push(0);
+}
 
-new Chart(document.getElementById("trendChart"),{
+/* UPDATE TEXT */
+document.getElementById("attendancePercent").innerText =
+(total > 0 ? "100%" : "0%");
 
+/* DESTROY OLD */
+if(window.trendChart){
+window.trendChart.destroy();
+}
+if(window.subjectChart){
+window.subjectChart.destroy();
+}
+
+/* 🔥 FORCE RENDER AFTER DOM READY */
+setTimeout(()=>{
+
+window.trendChart = new Chart(
+document.getElementById("trendChart").getContext("2d"),
+{
 type:"line",
-
 data:{
-labels:Object.keys(trend),
+labels: labels1,
 datasets:[{
 label:"Attendance",
-data:Object.values(trend),
-borderColor:"#22c55e",
-backgroundColor:"rgba(34,197,94,0.3)",
-fill:true,
-tension:0.4
+data: data1
 }]
+},
+options:{
+responsive:true
 }
+}
+);
 
-});
-
-
-/* SUBJECT GRAPH */
-
-new Chart(document.getElementById("subjectChart"),{
-
+window.subjectChart = new Chart(
+document.getElementById("subjectChart").getContext("2d"),
+{
 type:"bar",
-
 data:{
-labels:Object.keys(subjects),
+labels: labels2,
 datasets:[{
-label:"Classes Attended",
-data:Object.values(subjects),
-backgroundColor:[
-"#6366f1",
-"#8b5cf6",
-"#22c55e",
-"#f59e0b",
-"#3b82f6"
-]
+label:"Subjects",
+data: data2
 }]
+},
+options:{
+responsive:true
 }
+}
+);
+
+},100);
 
 });
-
 }
-
 </script>
-
 </body>
 </html>
