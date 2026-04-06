@@ -213,7 +213,7 @@ return;
 
 await setDoc(recordRef,{
 student:userId,
-session:sessionId || decodedText,
+session:sessionId,
 subject:data.subject,   // 🔥 THIS FIXES DASHBOARD
 time:new Date().toISOString()
 });
@@ -252,48 +252,42 @@ async(decodedText)=>{
 
 try{
 
-const sessionRef=doc(db,"attendanceSessions",decodedText);
+/* ✅ EXTRACT SESSION ID FROM URL */
+let sessionId = decodedText;
 
-const session=await getDoc(sessionRef);
+if(decodedText.includes("session=")){
+sessionId = decodedText.split("session=")[1];
+}
+
+const sessionRef = doc(db,"attendanceSessions",sessionId);
+const session = await getDoc(sessionRef);
 
 if(!session.exists()){
-
-document.getElementById("statusMessage").innerText=
-"Invalid QR session";
-
+document.getElementById("statusMessage").innerText="Invalid QR";
 return;
-
 }
 
-const data=session.data();
+const data = session.data();
 
 if(!data.active){
-
-document.getElementById("statusMessage").innerText=
-"Attendance session closed";
-
+document.getElementById("statusMessage").innerText="Session closed";
 return;
-
 }
 
-const recordId=userId+"_"+decodedText;
+const recordId = userId + "_" + sessionId;
+const recordRef = doc(db,"attendanceRecords",recordId);
 
-const recordRef=doc(db,"attendanceRecords",recordId);
-
-const record=await getDoc(recordRef);
+const record = await getDoc(recordRef);
 
 if(record.exists()){
-
-document.getElementById("statusMessage").innerText=
-"Attendance already marked";
-
+document.getElementById("statusMessage").innerText="Already marked";
 return;
-
 }
 
 await setDoc(recordRef,{
 student:userId,
-session:decodedText,
+session:sessionId,
+subject:data.subject,
 time:new Date().toISOString()
 });
 
@@ -301,18 +295,13 @@ await updateDoc(sessionRef,{
 present:data.present+1
 });
 
-document.getElementById("statusMessage").innerText=
-"Attendance marked successfully";
+document.getElementById("statusMessage").innerText="Attendance marked ✅";
 
 scanner.stop();
 
 }catch(err){
-
 console.error(err);
-
-document.getElementById("statusMessage").innerText=
-"Error marking attendance";
-
+document.getElementById("statusMessage").innerText="Error";
 }
 
 }
