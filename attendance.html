@@ -187,11 +187,10 @@ where
 }
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-let sessionId=null;
-let totalStudents=0;
+let sessionId = null;
+let unsubscribe = null;
 
 /* START SESSION */
-
 window.startSession = async function(){
 
 if(sessionId){
@@ -199,55 +198,49 @@ alert("Session already running");
 return;
 }
 
-const subject=document.getElementById("subject").value;
-
-totalStudents=Number(document.getElementById("totalStudents").value);
+const subject = document.getElementById("subject").value;
+const totalStudents = Number(document.getElementById("totalStudents").value);
 
 if(!totalStudents){
 alert("Enter total students");
 return;
 }
 
-const mode=document.querySelector('input[name="mode"]:checked').value;
+const mode = document.querySelector('input[name="mode"]:checked').value;
 
-const ref=await addDoc(collection(db,"attendanceSessions"),{
-
-subject:subject,
-total:totalStudents,
-present:0,
-active:true,
-mode:mode,
-date:new Date().toISOString()
-
+const ref = await addDoc(collection(db,"attendanceSessions"),{
+subject,
+total: totalStudents,
+present: 0,
+active: true,
+mode,
+date: new Date().toISOString()
 });
 
-sessionId=ref.id;
+sessionId = ref.id;
 
-/* QR MODE */
+/* ✅ CREATE PHONE-ACCESSIBLE URL */
+const url = `${window.location.origin}/mark-attendance.html?session=${sessionId}`;
 
+/* QR */
 if(mode==="qr"){
-
-const box=document.getElementById("qrBox");
-
+const box = document.getElementById("qrBox");
 box.innerHTML="";
-box.style.display="block";
+box.style.display="flex";
 
 new QRCode(box,{
-text:sessionId,
-width:180,
-height:180
+text:url,
+width:200,
+height:200
 });
-
 }else{
-
 document.getElementById("qrBox").style.display="none";
-
 }
 
+listenAttendance();
 };
 
 /* END SESSION */
-
 window.endSession = async function(){
 
 if(!sessionId){
@@ -265,12 +258,15 @@ document.getElementById("presentCount").innerText="0";
 document.getElementById("progressBar").style.width="0%";
 document.getElementById("qrBox").style.display="none";
 
-alert("Attendance session ended");
+if(unsubscribe){
+unsubscribe();
+unsubscribe=null;
+}
 
+alert("Attendance session ended");
 };
 
 /* LIVE ATTENDANCE */
-
 function listenAttendance(){
 
 const q=query(
@@ -278,22 +274,20 @@ collection(db,"attendanceSessions"),
 where("active","==",true)
 );
 
-onSnapshot(q,(snapshot)=>{
+if(unsubscribe) unsubscribe();
+
+unsubscribe = onSnapshot(q,(snapshot)=>{
 
 snapshot.forEach(d=>{
 
 const data=d.data();
-
 sessionId=d.id;
 
 document.getElementById("presentCount").innerText=data.present;
 
 if(data.total>0){
-
 const percent=(data.present/data.total)*100;
-
 document.getElementById("progressBar").style.width=percent+"%";
-
 }
 
 });
@@ -301,9 +295,6 @@ document.getElementById("progressBar").style.width=percent+"%";
 });
 
 }
-
-listenAttendance();
-
 
 </script>
 <script>
