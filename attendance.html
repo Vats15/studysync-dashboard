@@ -149,14 +149,15 @@ updateDoc,
 doc,
 onSnapshot,
 query,
-where
+where,
+getDocs
 }
 from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 let sessionId = null;
 let unsubscribe = null;
 
-/* START SESSION */
+/* ================= START SESSION ================= */
 window.startSession = async function(){
 
 if(sessionId){
@@ -172,7 +173,18 @@ alert("Enter total students");
 return;
 }
 
-/* 🔥 ALWAYS SELF MODE */
+/* 🔥 CLOSE OLD SESSIONS (VERY IMPORTANT) */
+const oldSessions = await getDocs(
+query(collection(db,"attendanceSessions"), where("active","==",true))
+);
+
+oldSessions.forEach(async(s)=>{
+await updateDoc(doc(db,"attendanceSessions",s.id),{
+active:false
+});
+});
+
+/* CREATE NEW SESSION */
 const ref = await addDoc(collection(db,"attendanceSessions"),{
 subject,
 total: totalStudents,
@@ -184,10 +196,15 @@ date: new Date().toISOString()
 
 sessionId = ref.id;
 
+/* RESET UI */
+document.getElementById("presentCount").innerText = "0";
+document.getElementById("progressBar").style.width = "0%";
+
+/* LISTEN ONLY THIS SESSION */
 listenAttendance();
 };
 
-/* END SESSION */
+/* ================= END SESSION ================= */
 window.endSession = async function(){
 
 if(!sessionId){
@@ -201,6 +218,7 @@ active:false
 
 sessionId = null;
 
+/* RESET UI */
 document.getElementById("presentCount").innerText="0";
 document.getElementById("progressBar").style.width="0%";
 
@@ -212,34 +230,35 @@ unsubscribe=null;
 alert("Attendance session ended");
 };
 
-/* LIVE UPDATE */
+/* ================= LIVE UPDATE (FIXED) ================= */
 function listenAttendance(){
 
-const q=query(
-collection(db,"attendanceSessions"),
-where("active","==",true)
-);
+if(!sessionId) return;
+
+/* 🔥 LISTEN ONLY CURRENT SESSION */
+const ref = doc(db,"attendanceSessions",sessionId);
 
 if(unsubscribe) unsubscribe();
 
-unsubscribe = onSnapshot(q,(snapshot)=>{
+unsubscribe = onSnapshot(ref,(snap)=>{
 
-snapshot.forEach(d=>{
+if(!snap.exists()) return;
 
-const data = d.data();
-sessionId = d.id;
+const data = snap.data();
 
-document.getElementById("presentCount").innerText = data.present;
+/* SAFE UPDATE */
+const present = data.present || 0;
+const total = data.total || 0;
 
-if(data.total > 0){
-const percent = (data.present/data.total)*100;
+document.getElementById("presentCount").innerText = present;
+
+/* PROGRESS */
+if(total > 0){
+const percent = (present / total) * 100;
 document.getElementById("progressBar").style.width = percent + "%";
 }
 
 });
-
-});
-
 }
 
 </script>
